@@ -14,6 +14,7 @@ import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import org.slf4j.LoggerFactory
 
 private val PLAYER_SCHEME = System.getenv("PLAYER_SCHEME")
     ?: "http"
@@ -21,6 +22,8 @@ private val PLAYER_HOST = System.getenv("PLAYER_HOST")
     ?: throw NullPointerException("Missing required env: PLAYER_HOST")
 private val PLAYER_PORT = System.getenv("PLAYER_PORT")?.toInt()
     ?: 11000
+
+private val logger = LoggerFactory.getLogger("app")
 
 private val xmlMapper = XmlMapper()
     .registerKotlinModule()
@@ -44,7 +47,7 @@ private val httpClient = HttpClient(CIO) {
 }
 
 suspend fun main(): Unit = coroutineScope {
-    println("Using player $PLAYER_SCHEME://$PLAYER_HOST:$PLAYER_PORT")
+    logger.info("Using player $PLAYER_SCHEME://$PLAYER_HOST:$PLAYER_PORT")
     var status = getStatus(null)
     var previousStatusText = ""
 
@@ -53,7 +56,7 @@ suspend fun main(): Unit = coroutineScope {
             .joinToString(" - ")
         val statusText = "[${status.state}] ${title}"
         if (previousStatusText != statusText) {
-            println(statusText)
+            logger.info(statusText)
         }
         previousStatusText = statusText
 
