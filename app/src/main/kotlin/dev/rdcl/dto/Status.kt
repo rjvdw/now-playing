@@ -1,4 +1,4 @@
-package dev.rdcl
+package dev.rdcl.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -47,5 +47,3 @@ data class Status(
 
     fun isPlaying() = state == "play" || state == "stream"
 }
-
-enum class RepeatStatus { QUEUE, TRACK, OFF }

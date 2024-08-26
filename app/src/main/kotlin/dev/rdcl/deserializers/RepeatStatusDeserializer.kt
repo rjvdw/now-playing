@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonTokenId
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
-import dev.rdcl.RepeatStatus
+import dev.rdcl.dto.RepeatStatus
 
 class RepeatStatusDeserializer : JsonDeserializer<RepeatStatus?>() {
     override fun deserialize(p: JsonParser?, ctxt: DeserializationContext?) =

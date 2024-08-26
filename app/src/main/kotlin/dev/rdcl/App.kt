@@ -1,6 +1,7 @@
 package dev.rdcl
 
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("app")
@@ -12,12 +13,29 @@ private val player = Player(
 
 suspend fun main(): Unit = coroutineScope {
     logger.info("Using player ${player.address}")
-    var previousStatusText = ""
-    player.onStatus { status ->
-        val statusText = "[${status.state}] ${status.getTitle()}"
-        if (previousStatusText != statusText) {
-            logger.info(statusText)
+
+    val syncStatusJob = launch {
+        var previousSyncStatusText = ""
+        player.onSyncStatus {
+            val syncStatusText = "Player: $name ($modelName)"
+            if (previousSyncStatusText != syncStatusText) {
+                logger.info(syncStatusText)
+            }
+            previousSyncStatusText = syncStatusText
         }
-        previousStatusText = statusText
     }
+
+    val statusJob = launch {
+        var previousStatusText = ""
+        player.onStatus {
+            val statusText = "[$state] ${getTitle()}"
+            if (previousStatusText != statusText) {
+                logger.info(statusText)
+            }
+            previousStatusText = statusText
+        }
+    }
+
+    syncStatusJob.join()
+    statusJob.join()
 }
