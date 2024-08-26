@@ -42,6 +42,10 @@ data class Status(
     val totalLength: Int?,
 
     val volume: Int?,
-)
+) {
+    fun getTitle(separator: String = " - ") = listOfNotNull(title1, title2, title3).joinToString(separator)
+
+    fun isPlaying() = state == "play" || state == "stream"
+}
 
 enum class RepeatStatus { QUEUE, TRACK, OFF }

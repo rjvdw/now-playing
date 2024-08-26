@@ -1,82 +1,23 @@
 package dev.rdcl
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 
-private val PLAYER_SCHEME = System.getenv("PLAYER_SCHEME")
-    ?: "http"
-private val PLAYER_HOST = System.getenv("PLAYER_HOST")
-    ?: throw NullPointerException("Missing required env: PLAYER_HOST")
-private val PLAYER_PORT = System.getenv("PLAYER_PORT")?.toInt()
-    ?: 11000
-
 private val logger = LoggerFactory.getLogger("app")
-
-private val xmlMapper = XmlMapper()
-    .registerKotlinModule()
-    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-
-private val httpClient = HttpClient(CIO) {
-    install(HttpTimeout) {
-        // increase request timeout to allow for long polling
-        requestTimeoutMillis = 500000
-    }
-    install(ContentNegotiation) {
-        register(ContentType.Text.Xml, JacksonConverter(xmlMapper, true))
-    }
-    defaultRequest {
-        url(
-            scheme = PLAYER_SCHEME,
-            host = PLAYER_HOST,
-            port = PLAYER_PORT,
-        )
-    }
-}
+private val player = Player(
+    host = System.getenv("PLAYER_HOST") ?: throw NullPointerException("Missing required env: PLAYER_HOST"),
+    port = System.getenv("PLAYER_PORT")?.toInt() ?: 11000,
+    scheme = System.getenv("PLAYER_SCHEME") ?: "http",
+)
 
 suspend fun main(): Unit = coroutineScope {
-    logger.info("Using player $PLAYER_SCHEME://$PLAYER_HOST:$PLAYER_PORT")
-    var status = getStatus(null)
+    logger.info("Using player ${player.address}")
     var previousStatusText = ""
-
-    while (true) {
-        val title = listOfNotNull(status.title1, status.title2, status.title3)
-            .joinToString(" - ")
-        val statusText = "[${status.state}] ${title}"
+    player.onStatus { status ->
+        val statusText = "[${status.state}] ${status.getTitle()}"
         if (previousStatusText != statusText) {
             logger.info(statusText)
         }
         previousStatusText = statusText
-
-        status = getStatus(status)
     }
-}
-
-private suspend fun getStatus(previous: Status?): Status = withContext(Dispatchers.IO) {
-    httpClient.get {
-        url(path = "/Status") {
-            if (previous !== null) {
-                parameters.append("etag", previous.etag)
-                parameters.append(
-                    "timeout",
-                    when (previous.state) {
-                        "play", "stream" -> 30
-                        else -> 270
-                    }.toString()
-                )
-            }
-        }
-    }.body()
 }
