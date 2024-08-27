@@ -3,6 +3,7 @@ package dev.rdcl
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import dev.rdcl.dto.Playlist
 import dev.rdcl.dto.Status
 import dev.rdcl.dto.SyncStatus
 import dev.rdcl.dto.Volume
@@ -75,6 +76,10 @@ class Player(
                 parameters.append("level", level.toString())
             }
         }.body()
+    }
+
+    suspend fun getPlaylist(): Playlist = withContext(Dispatchers.IO) {
+        httpClient.get { url(path = "/Playlist") }.body()
     }
 
     suspend fun onStatus(handler: Status.() -> Unit) {
