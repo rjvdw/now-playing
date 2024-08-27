@@ -82,12 +82,12 @@ fun CoroutineScope.launchUserInputJob() = launch {
                 )
             }
 
+            // playback
             "play" -> player.play()
-
             "pause" -> player.pause()
-
             "stop" -> player.stop()
 
+            // volume
             "volume" -> {
                 val result = when {
                     arguments.isEmpty() -> player.getVolume()
@@ -96,11 +96,10 @@ fun CoroutineScope.launchUserInputJob() = launch {
                 println("Volume: ${result.level}")
             }
 
+            // playlist
             "playlist" -> player.getPlaylist()
                 .songs
-                .forEach {
-                    println("${it.id + 1}. ${it.title}")
-                }
+                .forEach { println("${it.id + 1}. ${it.title}") }
         }
     }
 }

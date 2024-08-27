@@ -3,16 +3,14 @@ package dev.rdcl
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import dev.rdcl.dto.Playlist
-import dev.rdcl.dto.Status
-import dev.rdcl.dto.SyncStatus
-import dev.rdcl.dto.Volume
+import dev.rdcl.dto.*
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.Dispatchers
@@ -54,33 +52,37 @@ class Player(
         }
     }
 
-    suspend fun play() = withContext(Dispatchers.IO) {
-        httpClient.get { url(path = "/Play") }
+    suspend fun getStatus(status: Status? = null): Status = call("/Status") {
+        if (status !== null) {
+            parameters.append("etag", status.etag)
+            parameters.append(
+                "timeout",
+                when {
+                    // poll more frequently when playing, to keep the progress bar accurate
+                    status.isPlaying() -> statusPollIntervalWhenPlaying
+                    else -> statusPollIntervalWhenNotPlaying
+                }.toString()
+            )
+        }
     }
 
-    suspend fun pause() = withContext(Dispatchers.IO) {
-        httpClient.get { url(path = "/Pause") }
+    suspend fun getSyncStatus(syncStatus: SyncStatus? = null): SyncStatus = call("/SyncStatus") {
+        if (syncStatus !== null) {
+            parameters.append("etag", syncStatus.etag)
+            parameters.append("timeout", syncStatusPollInterval.toString())
+        }
     }
 
-    suspend fun stop() = withContext(Dispatchers.IO) {
-        httpClient.get { url(path = "/Stop") }
+    suspend fun play(): State = call("/Play")
+    suspend fun pause(): State = call("/Pause")
+    suspend fun stop(): State = call("/Stop")
+
+    suspend fun getVolume(): Volume = call("/Volume")
+    suspend fun setVolume(level: Int): Volume = call("/Volume") {
+        parameters.append("level", level.toString())
     }
 
-    suspend fun getVolume(): Volume = withContext(Dispatchers.IO) {
-        httpClient.get { url(path = "/Volume") }.body()
-    }
-
-    suspend fun setVolume(level: Int): Volume = withContext(Dispatchers.IO) {
-        httpClient.get {
-            url(path = "/Volume") {
-                parameters.append("level", level.toString())
-            }
-        }.body()
-    }
-
-    suspend fun getPlaylist(): Playlist = withContext(Dispatchers.IO) {
-        httpClient.get { url(path = "/Playlist") }.body()
-    }
+    suspend fun getPlaylist(): Playlist = call("/Playlist")
 
     suspend fun onStatus(handler: Status.() -> Unit) {
         var status = getStatus()
@@ -88,24 +90,6 @@ class Player(
             handler(status)
             status = getStatus(status)
         }
-    }
-
-    suspend fun getStatus(status: Status? = null): Status = withContext(Dispatchers.IO) {
-        httpClient.get {
-            url(path = "/Status") {
-                if (status !== null) {
-                    parameters.append("etag", status.etag)
-                    parameters.append(
-                        "timeout",
-                        when {
-                            // poll more frequently when playing, to keep the progress bar accurate
-                            status.isPlaying() -> statusPollIntervalWhenPlaying
-                            else -> statusPollIntervalWhenNotPlaying
-                        }.toString()
-                    )
-                }
-            }
-        }.body()
     }
 
     suspend fun onSyncStatus(handler: SyncStatus.() -> Unit) {
@@ -116,14 +100,10 @@ class Player(
         }
     }
 
-    suspend fun getSyncStatus(syncStatus: SyncStatus? = null): SyncStatus = withContext(Dispatchers.IO) {
-        httpClient.get {
-            url(path = "/SyncStatus") {
-                if (syncStatus !== null) {
-                    parameters.append("etag", syncStatus.etag)
-                    parameters.append("timeout", syncStatusPollInterval.toString())
-                }
-            }
-        }.body()
-    }
+    private suspend inline fun <reified T> call(path: String, noinline block: URLBuilder.() -> Unit = {}): T =
+        withContext(Dispatchers.IO) {
+            httpClient.get {
+                url(path = path, block = block)
+            }.body()
+        }
 }
