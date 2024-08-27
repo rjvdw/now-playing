@@ -1,9 +1,9 @@
-package dev.rdcl.dto
+package dev.rdcl.nowplaying.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import dev.rdcl.deserializers.BitToBooleanDeserializer
-import dev.rdcl.deserializers.RepeatStatusDeserializer
+import dev.rdcl.nowplaying.deserializers.BitToBooleanDeserializer
+import dev.rdcl.nowplaying.deserializers.RepeatStatusDeserializer
 
 data class Status(
 

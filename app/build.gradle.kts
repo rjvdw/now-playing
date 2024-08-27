@@ -1,38 +1,14 @@
-val jackson_version: String by project
 val kotlinx_coroutines_version: String by project
-val ktor_version: String by project
 val logback_version: String by project
-val woodstox_version: String by project
 
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    application
-    kotlin("plugin.serialization") version "2.0.10"
-}
-
-repositories {
-    mavenCentral()
+    id("buildlogic.kotlin-application-conventions")
 }
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version")
-
-    implementation("io.ktor:ktor-client-core:$ktor_version")
-    implementation("io.ktor:ktor-client-cio:$ktor_version")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
-    implementation("io.ktor:ktor-serialization-jackson:$ktor_version")
-
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_version")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson_version")
-    implementation("com.fasterxml.woodstox:woodstox-core:$woodstox_version")
-
     implementation("ch.qos.logback:logback-classic:$logback_version")
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+    implementation(project(":player"))
 }
 
 application {
@@ -44,6 +20,8 @@ tasks.named<JavaExec>("run") {
 }
 
 tasks.jar {
+    dependsOn(":player:jar")
+
     manifest {
         attributes["Main-Class"] = "dev.rdcl.AppKt"
     }

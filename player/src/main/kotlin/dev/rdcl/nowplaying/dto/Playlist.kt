@@ -1,4 +1,4 @@
-package dev.rdcl.dto
+package dev.rdcl.nowplaying.dto
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty

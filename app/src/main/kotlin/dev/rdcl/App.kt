@@ -1,5 +1,6 @@
 package dev.rdcl
 
+import dev.rdcl.nowplaying.Player
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll

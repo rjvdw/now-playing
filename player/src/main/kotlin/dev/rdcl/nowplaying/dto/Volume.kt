@@ -1,9 +1,9 @@
-package dev.rdcl.dto
+package dev.rdcl.nowplaying.dto
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText
-import dev.rdcl.deserializers.BitToBooleanDeserializer
+import dev.rdcl.nowplaying.deserializers.BitToBooleanDeserializer
 
 data class Volume(
 

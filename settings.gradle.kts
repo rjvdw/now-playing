@@ -3,4 +3,4 @@ plugins {
 }
 
 rootProject.name = "now-playing"
-include("app")
+include("app", "player")
