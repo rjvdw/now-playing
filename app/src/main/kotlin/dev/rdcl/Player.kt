@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dev.rdcl.dto.Status
 import dev.rdcl.dto.SyncStatus
+import dev.rdcl.dto.Volume
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -50,6 +51,30 @@ class Player(
                 port = port,
             )
         }
+    }
+
+    suspend fun play() = withContext(Dispatchers.IO) {
+        httpClient.get { url(path = "/Play") }
+    }
+
+    suspend fun pause() = withContext(Dispatchers.IO) {
+        httpClient.get { url(path = "/Pause") }
+    }
+
+    suspend fun stop() = withContext(Dispatchers.IO) {
+        httpClient.get { url(path = "/Stop") }
+    }
+
+    suspend fun getVolume(): Volume = withContext(Dispatchers.IO) {
+        httpClient.get { url(path = "/Volume") }.body()
+    }
+
+    suspend fun setVolume(level: Int): Volume = withContext(Dispatchers.IO) {
+        httpClient.get {
+            url(path = "/Volume") {
+                parameters.append("level", level.toString())
+            }
+        }.body()
     }
 
     suspend fun onStatus(handler: Status.() -> Unit) {

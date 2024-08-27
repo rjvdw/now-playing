@@ -39,8 +39,8 @@ application {
     mainClass = "dev.rdcl.AppKt"
 }
 
-tasks.named<Test>("test") {
-    useJUnitPlatform()
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
 }
 
 tasks.jar {
